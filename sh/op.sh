@@ -3,7 +3,7 @@
 set -x
 
 # kenrel Vermagic
-sed -ie 's/^\(.\).*vermagic$/\1cp $(TOPDIR)\/.vermagic $(LINUX_DIR)\/.vermagic/' include/kernel-defaults.mk
+sed -i 's/^\(.\).*vermagic$/\1cp $(TOPDIR)\/.vermagic $(LINUX_DIR)\/.vermagic/' include/kernel-defaults.mk
 grep HASH target/linux/generic/kernel-6.12 | awk -F'HASH-' '{print $2}' | awk '{print $1}' | md5sum | awk '{print $1}' > .vermagic
 
 git clone -b packages --depth 1 --single-branch https://github.com/shiyu1314/openwrt-feeds package/xd
@@ -18,7 +18,7 @@ sed -i '/luci-app-attendedsysupgrade/d' \
     feeds/luci/collections/luci-ssl-openssl/Makefile \
     feeds/luci/collections/luci-ssl/Makefile \
     feeds/luci/collections/luci/Makefile
-    
+
 sed -i 's/+uhttpd /+luci-nginx /g' feeds/luci/collections/luci/Makefile
 sed -i 's/+uhttpd-mod-ubus //' feeds/luci/collections/luci/Makefile
 sed -i 's/+uhttpd /+luci-nginx /g' feeds/luci/collections/luci-light/Makefile
@@ -31,7 +31,7 @@ sed -i 's/+luci-nginx \\$/+luci-nginx/' feeds/luci/collections/luci-light/Makefi
 pushd feeds/luci || exit 1
 for patch in *.patch; do
     [ -f "$patch" ] || continue
-    
+
     echo "Applying $patch ..."
     patch -p1 --no-backup-if-mismatch < "$patch" || {
         echo "ERROR: Failed to apply $patch"
@@ -43,11 +43,10 @@ popd
 
 for patch in *.patch; do
     [ -f "$patch" ] || continue
-    
+
     echo "Applying $patch ..."
     patch -p1 --no-backup-if-mismatch < "$patch" || {
         echo "ERROR: Failed to apply $patch"
-        popd
         exit 1
     }
 done
@@ -105,6 +104,10 @@ sed -i '/<br \/>/d' feeds/luci/modules/luci-compat/luasrc/view/cbi/full_valuefoo
 #golang 26.x
 rm -rf feeds/packages/lang/golang
 git clone https://github.com/sbwml/packages_lang_golang -b 27.x feeds/packages/lang/golang
+
+# 添加 Passwall 官方最新源（编译时集成，必须在 feeds update 之前）
+sed -i '1i src-git passwall_packages https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git;main' feeds.conf.default
+sed -i '1i src-git passwall_luci https://github.com/Openwrt-Passwall/openwrt-passwall.git;main' feeds.conf.default
 
 ./scripts/feeds update -a
 ./scripts/feeds install -a
