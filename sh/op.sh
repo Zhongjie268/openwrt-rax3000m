@@ -3,7 +3,7 @@
 set -x
 
 # kenrel Vermagic
-sed -i 's/^\(.\).*vermagic$/\1cp $(TOPDIR)\/.vermagic $(LINUX_DIR)\/.vermagic/' include/kernel-defaults.mk
+sed -ie 's/^\(.\).*vermagic$/\1cp $(TOPDIR)\/.vermagic $(LINUX_DIR)\/.vermagic/' include/kernel-defaults.mk
 grep HASH target/linux/generic/kernel-6.12 | awk -F'HASH-' '{print $2}' | awk '{print $1}' | md5sum | awk '{print $1}' > .vermagic
 
 git clone -b packages --depth 1 --single-branch https://github.com/shiyu1314/openwrt-feeds package/xd
@@ -18,7 +18,7 @@ sed -i '/luci-app-attendedsysupgrade/d' \
     feeds/luci/collections/luci-ssl-openssl/Makefile \
     feeds/luci/collections/luci-ssl/Makefile \
     feeds/luci/collections/luci/Makefile
-
+    
 sed -i 's/+uhttpd /+luci-nginx /g' feeds/luci/collections/luci/Makefile
 sed -i 's/+uhttpd-mod-ubus //' feeds/luci/collections/luci/Makefile
 sed -i 's/+uhttpd /+luci-nginx /g' feeds/luci/collections/luci-light/Makefile
@@ -31,7 +31,7 @@ sed -i 's/+luci-nginx \\$/+luci-nginx/' feeds/luci/collections/luci-light/Makefi
 pushd feeds/luci || exit 1
 for patch in *.patch; do
     [ -f "$patch" ] || continue
-
+    
     echo "Applying $patch ..."
     patch -p1 --no-backup-if-mismatch < "$patch" || {
         echo "ERROR: Failed to apply $patch"
@@ -43,10 +43,11 @@ popd
 
 for patch in *.patch; do
     [ -f "$patch" ] || continue
-
+    
     echo "Applying $patch ..."
     patch -p1 --no-backup-if-mismatch < "$patch" || {
         echo "ERROR: Failed to apply $patch"
+        popd
         exit 1
     }
 done
