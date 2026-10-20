@@ -113,6 +113,9 @@ sed -i '1i src-git passwall_luci https://github.com/Openwrt-Passwall/openwrt-pas
 ./scripts/feeds update -a
 ./scripts/feeds install -a
 
+# luci-app-ddns-go
+git clone https://github.com/sirpdboy/luci-app-ddns-go package/ddns-go
+
 sed -i 's|/bin/login|/bin/login -f root|g' feeds/packages/utils/ttyd/files/ttyd.config
 
 
